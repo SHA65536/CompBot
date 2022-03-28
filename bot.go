@@ -48,6 +48,7 @@ func MakeCompBot(args Config) *CompBot {
 	}
 	disc.AddHandler(bot.messageCreate)
 	disc.AddHandler(bot.reactionAdd)
+	disc.AddHandler(bot.reactionRemove)
 	disc.Identify.Intents =
 		discordgo.IntentsGuilds | discordgo.IntentsGuildMessages | discordgo.IntentGuildMessageReactions
 	return bot
@@ -96,6 +97,7 @@ func (bot *CompBot) createComp(s *discordgo.Session, m *discordgo.MessageCreate)
 	comp = &Comp{msg.ID, m.Author.ID, make(map[string]string), embed.Title}
 	bot.CompsByMessage[msg.ID] = comp
 	s.MessageReactionAdd(m.ChannelID, msg.ID, "🆗")
+	bot.Logger.Printf("Comp Created by %s", m.Author.Username)
 }
 
 func (bot *CompBot) reactionAdd(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
@@ -104,6 +106,27 @@ func (bot *CompBot) reactionAdd(s *discordgo.Session, m *discordgo.MessageReacti
 	}
 	if comp, ok := bot.CompsByMessage[m.MessageID]; ok {
 		comp.Users[m.UserID] = m.Member.User.Username
+		embed := &discordgo.MessageEmbed{}
+		json.Unmarshal(template, &embed)
+		embed.Title = comp.Title
+		embed.Description = fmt.Sprintf("**%v have volunteered!**\n%s", len(comp.Users), dictToList(comp.Users))
+		_, err := s.ChannelMessageEditEmbed(m.ChannelID, m.MessageID, embed)
+		if err != nil {
+			bot.Logger.Printf("Message could not be edited in %s", m.ChannelID)
+			return
+		}
+		bot.Logger.Printf("%s Joined Comp %s", m.Member.User.Username, m.MessageID)
+	}
+}
+
+func (bot *CompBot) reactionRemove(s *discordgo.Session, m *discordgo.MessageReactionRemove) {
+	if m.UserID == s.State.User.ID || m.ChannelID != bot.Args.Channel || m.Emoji.Name != "🆗" {
+		return
+	}
+	if comp, ok := bot.CompsByMessage[m.MessageID]; ok {
+		if _, ok := comp.Users[m.UserID]; ok {
+			delete(comp.Users, m.UserID)
+		}
 		embed := &discordgo.MessageEmbed{}
 		json.Unmarshal(template, &embed)
 		embed.Title = comp.Title
