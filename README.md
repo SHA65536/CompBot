@@ -7,6 +7,10 @@ Clone this repository and navigate into the created folder:
 git clone https://github.com/SHA65536/CompBot.git
 cd CompBot
 ```
+Now install the dependencies:
+```
+go get .
+```
 Now you will need to create the envirnment variables for the bot.
 
 You could either export them on your own, or create a file named ".env" containing the following values:
