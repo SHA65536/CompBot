@@ -2,28 +2,16 @@ package main
 
 import (
 	_ "embed"
-	"encoding/json"
-	"fmt"
 	"log"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-//go:embed embedTemplate.json
-var template []byte
-
 type Config struct {
 	Token   string
 	Prefix  string
 	Channel string
-}
-
-type Comp struct {
-	Id    string            // Message ID
-	Owner string            // Owner ID
-	Users map[string]string // Participants
-	Title string            // Embed Title
 }
 
 type CompBot struct {
@@ -73,31 +61,17 @@ func (bot *CompBot) messageCreate(s *discordgo.Session, m *discordgo.MessageCrea
 		return
 	}
 	if strings.HasPrefix(m.Content, bot.Args.Prefix) {
-		bot.createComp(s, m)
+		comp := MakeComp("", m.Author.ID, m.Author.String())
+		msg, err := s.ChannelMessageSendEmbed(m.ChannelID, comp.Embed())
+		if err != nil {
+			bot.Logger.Printf("Message could not be sent in %s", m.ChannelID)
+			return
+		}
+		comp.Id = msg.ID
+		bot.CompsByMessage[msg.ID] = comp
+		s.MessageReactionAdd(m.ChannelID, msg.ID, "🆗")
+		bot.Logger.Printf("User %s Created a new comp", m.Author.String())
 	}
-}
-
-// Creates a new comp and registers it
-func (bot *CompBot) createComp(s *discordgo.Session, m *discordgo.MessageCreate) {
-	var embed *discordgo.MessageEmbed
-	var send *discordgo.MessageSend
-	var comp *Comp
-	embed = &discordgo.MessageEmbed{}
-	json.Unmarshal(template, &embed)
-	embed.Title = fmt.Sprintf(embed.Title, m.Author.Username)
-	send = &discordgo.MessageSend{
-		Embed: embed,
-		TTS:   false,
-	}
-	msg, err := s.ChannelMessageSendComplex(m.ChannelID, send)
-	if err != nil {
-		bot.Logger.Printf("Message could not be sent in %s", m.ChannelID)
-		return
-	}
-	comp = &Comp{msg.ID, m.Author.ID, make(map[string]string), embed.Title}
-	bot.CompsByMessage[msg.ID] = comp
-	s.MessageReactionAdd(m.ChannelID, msg.ID, "🆗")
-	bot.Logger.Printf("Comp Created by %s", m.Author.Username)
 }
 
 func (bot *CompBot) reactionAdd(s *discordgo.Session, m *discordgo.MessageReactionAdd) {
@@ -105,17 +79,17 @@ func (bot *CompBot) reactionAdd(s *discordgo.Session, m *discordgo.MessageReacti
 		return
 	}
 	if comp, ok := bot.CompsByMessage[m.MessageID]; ok {
-		comp.Users[m.UserID] = m.Member.User.Username
-		embed := &discordgo.MessageEmbed{}
-		json.Unmarshal(template, &embed)
-		embed.Title = comp.Title
-		embed.Description = fmt.Sprintf("**%v have volunteered!**\n%s", len(comp.Users), dictToList(comp.Users))
-		_, err := s.ChannelMessageEditEmbed(m.ChannelID, m.MessageID, embed)
+		err := comp.AddUser(m.UserID, m.Member.User.String())
+		if err != nil {
+			bot.Logger.Print(err)
+			return
+		}
+		_, err = s.ChannelMessageEditEmbed(m.ChannelID, m.MessageID, comp.Embed())
 		if err != nil {
 			bot.Logger.Printf("Message could not be edited in %s", m.ChannelID)
 			return
 		}
-		bot.Logger.Printf("%s Joined Comp %s", m.Member.User.Username, m.MessageID)
+		bot.Logger.Printf("User %s Joined Comp %s", m.Member.User.String(), m.MessageID)
 	}
 }
 
@@ -124,25 +98,16 @@ func (bot *CompBot) reactionRemove(s *discordgo.Session, m *discordgo.MessageRea
 		return
 	}
 	if comp, ok := bot.CompsByMessage[m.MessageID]; ok {
-		if _, ok := comp.Users[m.UserID]; ok {
-			delete(comp.Users, m.UserID)
+		err := comp.RemoveUser(m.UserID)
+		if err != nil {
+			bot.Logger.Print(err)
+			return
 		}
-		embed := &discordgo.MessageEmbed{}
-		json.Unmarshal(template, &embed)
-		embed.Title = comp.Title
-		embed.Description = fmt.Sprintf("**%v have volunteered!**\n%s", len(comp.Users), dictToList(comp.Users))
-		_, err := s.ChannelMessageEditEmbed(m.ChannelID, m.MessageID, embed)
+		_, err = s.ChannelMessageEditEmbed(m.ChannelID, m.MessageID, comp.Embed())
 		if err != nil {
 			bot.Logger.Printf("Message could not be edited in %s", m.ChannelID)
 			return
 		}
+		bot.Logger.Printf("User %s Left Comp %s", m.UserID, m.MessageID)
 	}
-}
-
-func dictToList(d map[string]string) string {
-	keys := make([]string, 0, len(d))
-	for k := range d {
-		keys = append(keys, d[k])
-	}
-	return strings.Join(keys, ",")
 }
