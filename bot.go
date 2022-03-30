@@ -61,16 +61,7 @@ func (bot *CompBot) messageCreate(s *discordgo.Session, m *discordgo.MessageCrea
 		return
 	}
 	if strings.HasPrefix(m.Content, bot.Args.Prefix) {
-		comp := MakeComp("", m.Author.ID, m.Author.String())
-		msg, err := s.ChannelMessageSendComplex(m.ChannelID, comp.Embed())
-		if err != nil {
-			bot.Logger.Printf("Message could not be sent in %s", m.ChannelID)
-			return
-		}
-		comp.Id = msg.ID
-		bot.CompsByMessage[msg.ID] = comp
-		s.MessageReactionAdd(m.ChannelID, msg.ID, "🆗")
-		bot.Logger.Printf("User %s Created a new comp", m.Author.String())
+		bot.createComp(s, m)
 	}
 }
 
@@ -79,17 +70,7 @@ func (bot *CompBot) reactionAdd(s *discordgo.Session, m *discordgo.MessageReacti
 		return
 	}
 	if comp, ok := bot.CompsByMessage[m.MessageID]; ok {
-		err := comp.AddUser(m.UserID, m.Member.User.String())
-		if err != nil {
-			bot.Logger.Print(err)
-			return
-		}
-		_, err = s.ChannelMessageEditEmbed(m.ChannelID, m.MessageID, comp.Embed().Embeds[0])
-		if err != nil {
-			bot.Logger.Printf("Message could not be edited in %s", m.ChannelID)
-			return
-		}
-		bot.Logger.Printf("User %s Joined Comp %s", m.Member.User.String(), m.MessageID)
+		bot.joinComp(s, m, comp)
 	}
 }
 
@@ -98,16 +79,47 @@ func (bot *CompBot) reactionRemove(s *discordgo.Session, m *discordgo.MessageRea
 		return
 	}
 	if comp, ok := bot.CompsByMessage[m.MessageID]; ok {
-		err := comp.RemoveUser(m.UserID)
-		if err != nil {
-			bot.Logger.Print(err)
-			return
-		}
-		_, err = s.ChannelMessageEditEmbed(m.ChannelID, m.MessageID, comp.Embed().Embeds[0])
-		if err != nil {
-			bot.Logger.Printf("Message could not be edited in %s", m.ChannelID)
-			return
-		}
-		bot.Logger.Printf("User %s Left Comp %s", m.UserID, m.MessageID)
+		bot.leaveComp(s, m, comp)
 	}
+}
+
+func (bot *CompBot) createComp(s *discordgo.Session, m *discordgo.MessageCreate) {
+	comp := MakeComp("", m.Author.ID, m.Author.String())
+	msg, err := s.ChannelMessageSendComplex(m.ChannelID, comp.Embed())
+	if err != nil {
+		bot.Logger.Printf("Message could not be sent in %s", m.ChannelID)
+		return
+	}
+	comp.Id = msg.ID
+	bot.CompsByMessage[msg.ID] = comp
+	s.MessageReactionAdd(m.ChannelID, msg.ID, "🆗")
+	bot.Logger.Printf("User %s Created a new comp", m.Author.String())
+}
+
+func (bot *CompBot) joinComp(s *discordgo.Session, m *discordgo.MessageReactionAdd, c *Comp) {
+	err := c.AddUser(m.UserID, m.Member.User.String())
+	if err != nil {
+		bot.Logger.Print(err)
+		return
+	}
+	_, err = s.ChannelMessageEditEmbed(m.ChannelID, m.MessageID, c.Embed().Embeds[0])
+	if err != nil {
+		bot.Logger.Printf("Message could not be edited in %s", m.ChannelID)
+		return
+	}
+	bot.Logger.Printf("User %s Joined Comp %s", m.Member.User.String(), m.MessageID)
+}
+
+func (bot *CompBot) leaveComp(s *discordgo.Session, m *discordgo.MessageReactionRemove, c *Comp) {
+	err := c.RemoveUser(m.UserID)
+	if err != nil {
+		bot.Logger.Print(err)
+		return
+	}
+	_, err = s.ChannelMessageEditEmbed(m.ChannelID, m.MessageID, c.Embed().Embeds[0])
+	if err != nil {
+		bot.Logger.Printf("Message could not be edited in %s", m.ChannelID)
+		return
+	}
+	bot.Logger.Printf("User %s Left Comp %s", m.UserID, m.MessageID)
 }
