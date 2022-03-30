@@ -56,11 +56,11 @@ func (c *Comp) RemoveUser(id string) error {
 	return nil
 }
 
-func (c *Comp) Embed() *discordgo.MessageEmbed {
-	embed := &discordgo.MessageEmbed{}
+func (c *Comp) Embed() *discordgo.MessageSend {
+	embed := &discordgo.MessageSend{}
 	json.Unmarshal(template, &embed)
-	embed.Title = fmt.Sprintf(embed.Title, c.Owner.Name)
-	embed.Description = fmt.Sprintf("**%v have volunteered!**\n%s", len(c.Users), c.nameList())
+	embed.Embeds[0].Title = fmt.Sprintf(embed.Embeds[0].Title, c.Owner.Name)
+	embed.Embeds[0].Description = fmt.Sprintf("**%v/5 have volunteered!**\n%s", len(c.Users), c.nameList())
 	return embed
 }
 

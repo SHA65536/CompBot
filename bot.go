@@ -62,7 +62,7 @@ func (bot *CompBot) messageCreate(s *discordgo.Session, m *discordgo.MessageCrea
 	}
 	if strings.HasPrefix(m.Content, bot.Args.Prefix) {
 		comp := MakeComp("", m.Author.ID, m.Author.String())
-		msg, err := s.ChannelMessageSendEmbed(m.ChannelID, comp.Embed())
+		msg, err := s.ChannelMessageSendComplex(m.ChannelID, comp.Embed())
 		if err != nil {
 			bot.Logger.Printf("Message could not be sent in %s", m.ChannelID)
 			return
@@ -84,7 +84,7 @@ func (bot *CompBot) reactionAdd(s *discordgo.Session, m *discordgo.MessageReacti
 			bot.Logger.Print(err)
 			return
 		}
-		_, err = s.ChannelMessageEditEmbed(m.ChannelID, m.MessageID, comp.Embed())
+		_, err = s.ChannelMessageEditEmbed(m.ChannelID, m.MessageID, comp.Embed().Embeds[0])
 		if err != nil {
 			bot.Logger.Printf("Message could not be edited in %s", m.ChannelID)
 			return
@@ -103,7 +103,7 @@ func (bot *CompBot) reactionRemove(s *discordgo.Session, m *discordgo.MessageRea
 			bot.Logger.Print(err)
 			return
 		}
-		_, err = s.ChannelMessageEditEmbed(m.ChannelID, m.MessageID, comp.Embed())
+		_, err = s.ChannelMessageEditEmbed(m.ChannelID, m.MessageID, comp.Embed().Embeds[0])
 		if err != nil {
 			bot.Logger.Printf("Message could not be edited in %s", m.ChannelID)
 			return
