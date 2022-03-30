@@ -11,9 +11,11 @@ import (
 )
 
 type Config struct {
-	Token   string
-	Prefix  string
-	Channel string
+	Token    string
+	Prefix   string
+	Channel  string
+	CreateCD time.Duration
+	ReactCD  time.Duration
 }
 
 type CompBot struct {
@@ -39,8 +41,8 @@ func MakeCompBot(args Config) *CompBot {
 		CompsByOwner:   make(map[string]*Comp),
 	}
 
-	bot.Cooldowns.NewCooldown("create", time.Minute*5)
-	bot.Cooldowns.NewCooldown("react", time.Second*3)
+	bot.Cooldowns.NewCooldown("create", args.CreateCD)
+	bot.Cooldowns.NewCooldown("react", args.ReactCD)
 
 	disc.AddHandler(bot.messageCreate)
 	disc.AddHandler(bot.reactionAdd)
