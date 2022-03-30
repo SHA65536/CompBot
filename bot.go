@@ -102,12 +102,25 @@ func (bot *CompBot) joinComp(s *discordgo.Session, m *discordgo.MessageReactionA
 		bot.Logger.Print(err)
 		return
 	}
-	_, err = s.ChannelMessageEditEmbed(m.ChannelID, m.MessageID, c.Embed().Embeds[0])
-	if err != nil {
-		bot.Logger.Printf("Message could not be edited in %s", m.ChannelID)
-		return
-	}
 	bot.Logger.Printf("User %s Joined Comp %s", m.Member.User.String(), m.MessageID)
+	if len(c.Users) == CompSize {
+		s.ChannelMessageDelete(m.ChannelID, c.Id)
+		msg, err := s.ChannelMessageSendComplex(m.ChannelID, c.Embed())
+		if err != nil {
+			bot.Logger.Printf("Message could not be sent in %s", m.ChannelID)
+			return
+		}
+		c.Id = msg.ID
+		bot.CompsByMessage[msg.ID] = c
+		s.MessageReactionAdd(m.ChannelID, msg.ID, "🆗")
+		bot.Logger.Printf("Comp %s is ready!", msg.ID)
+	} else {
+		_, err = s.ChannelMessageEditEmbed(m.ChannelID, m.MessageID, c.Embed().Embeds[0])
+		if err != nil {
+			bot.Logger.Printf("Message could not be edited in %s", m.ChannelID)
+			return
+		}
+	}
 }
 
 func (bot *CompBot) leaveComp(s *discordgo.Session, m *discordgo.MessageReactionRemove, c *Comp) {
