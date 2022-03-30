@@ -1,0 +1,13 @@
+{
+	"content": "@everyone",
+	"embeds": [
+		{
+			"color": 12846604,
+			"description": "**0 have volunteered!**",
+			"footer": {
+				"text": "Press 🆗 To Join!"
+			},
+			"title": "%s Is Orginaizing an Attack Squad!"
+		}
+	]
+}

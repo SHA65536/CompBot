@@ -1,0 +1,12 @@
+{
+	"content": "",
+	"embeds": [
+		{
+			"color": 65280,
+			"footer": {
+				"text": "Press 🆗 To Join!"
+			},
+			"title": "%s's Comp Is Ready!"
+		}
+	]
+}
