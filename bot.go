@@ -11,11 +11,12 @@ import (
 )
 
 type Config struct {
-	Token    string
-	Prefix   string
-	Channel  string
-	CreateCD time.Duration
-	ReactCD  time.Duration
+	Token      string
+	Prefix     string
+	Channel    string
+	CreateCD   time.Duration
+	ReactCD    time.Duration
+	GameStatus string
 }
 
 type CompBot struct {
@@ -57,6 +58,7 @@ func (bot *CompBot) Start() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	bot.Session.UpdateGameStatus(0, bot.Args.GameStatus)
 	bot.Logger.Println("Bot Successfully connected")
 }
 

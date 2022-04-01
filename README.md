@@ -17,11 +17,12 @@ You could either export them on your own, or create a file named ".env" containi
 ```shell
 TOKEN="YOUR_TOKEN"
 CHANNEL="YOUR_CHANNEL_ID"
-PREFIX="!prefix" #Optional. Default: !comp
+PREFIX="!prefix" #Optional. Default: "!comp"
+GANE_STATUS="your game" #Optional. Default: "CS:GO Since 1970"
 #Cooldown format is like "300ms", "1.5h" or "2h45m". 
 #Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
-CREATE_CD="5m" #Optional. Default: 5m
-REACT_CD="3s" #Optional. Default: 3s
+CREATE_CD="5m" #Optional. Default: "5m"
+REACT_CD="3s" #Optional. Default: "3s"
 ```
 
 ## Usage
