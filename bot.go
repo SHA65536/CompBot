@@ -148,7 +148,13 @@ func (bot *CompBot) reactionRemove(s *discordgo.Session, m *discordgo.MessageRea
 }
 
 func (bot *CompBot) createComp(s *discordgo.Session, m *discordgo.MessageCreate) {
-	comp := MakeComp("", m.Author.ID, m.Author.String())
+	var comp *Comp
+	split := strings.Split(m.Content, " ")
+	if len(split) == 1 {
+		comp = MakeComp("", m.Author.ID, m.Author.String(), "")
+	} else {
+		comp = MakeComp("", m.Author.ID, m.Author.String(), strings.Join(split[1:], " "))
+	}
 	msg, err := s.ChannelMessageSendComplex(m.ChannelID, comp.Embed())
 	if err != nil {
 		bot.Logger.Printf("Message could not be sent in %s", m.ChannelID)

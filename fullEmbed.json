@@ -1,12 +1,16 @@
 {
-	"content": "",
+	"content": "%s",
 	"embeds": [
 		{
 			"color": 65280,
 			"footer": {
 				"text": "Press 🆗 To Join!"
 			},
-			"title": "%s's Comp Is Ready!"
+			"author":{
+				"name": "%s's Comp Is Ready!"
+			},
+			"title": "The Comp Is Ready!",
+			"description":"5/5 Are ready!\n%s"
 		}
 	]
 }

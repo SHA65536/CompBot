@@ -27,14 +27,16 @@ type Comp struct {
 	Owner User            // Owner ID
 	Users map[string]bool // Participants by ID
 	Chron []User          // Participants Chronologically
+	Title string          //User String
 }
 
-func MakeComp(msg, owner_id, owner_name string) *Comp {
+func MakeComp(msg, owner_id, owner_name, title string) *Comp {
 	return &Comp{
 		Id:    msg,
 		Owner: User{owner_id, owner_name},
 		Users: make(map[string]bool),
 		Chron: make([]User, 0),
+		Title: title,
 	}
 }
 
@@ -68,13 +70,18 @@ func (c *Comp) Embed() *discordgo.MessageSend {
 	embed := &discordgo.MessageSend{}
 	if len(c.Users) == CompSize {
 		json.Unmarshal(fullTemplate, &embed)
-		embed.Content = c.mentions()
-		embed.Embeds[0].Title = fmt.Sprintf(embed.Embeds[0].Title, c.Owner.Name)
-		embed.Embeds[0].Description = fmt.Sprintf("**5/5 shahids are ready to fight!**\n%s", c.nameList())
+		embed.Content = fmt.Sprintf(embed.Content, c.mentions())
+		embed.Embeds[0].Author.Name = fmt.Sprintf(embed.Embeds[0].Author.Name, c.Owner.Name)
+		embed.Embeds[0].Description = fmt.Sprintf(embed.Embeds[0].Description, c.nameList())
 	} else {
 		json.Unmarshal(emptyTemplate, &embed)
+		embed.Embeds[0].Author.Name = fmt.Sprintf(embed.Embeds[0].Author.Name, c.Owner.Name)
+		embed.Embeds[0].Description = fmt.Sprintf(embed.Embeds[0].Description, len(c.Users), c.nameList())
+	}
+	if c.Title != "" {
+		embed.Embeds[0].Title = c.Title
+	} else {
 		embed.Embeds[0].Title = fmt.Sprintf(embed.Embeds[0].Title, c.Owner.Name)
-		embed.Embeds[0].Description = fmt.Sprintf("**%v/5 have volunteered!**\n%s", len(c.Users), c.nameList())
 	}
 	return embed
 }

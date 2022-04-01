@@ -3,9 +3,12 @@
 	"embeds": [
 		{
 			"color": 12846604,
-			"description": "**0 have volunteered!**",
+			"description": "**%v/5 have volunteered!**\n%s",
 			"footer": {
 				"text": "Press 🆗 To Join!"
+			},
+			"author":{
+				"name": "%s Is Orginaizing an Attack Squad!"
 			},
 			"title": "%s Is Orginaizing an Attack Squad!"
 		}
