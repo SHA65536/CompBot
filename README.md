@@ -29,7 +29,9 @@ To run the bot just run
 ```shell
 go run .
 ```
-To create a comp, use the keyword define earlier "!comp"
+To create a comp, use the keyword define earlier "!comp [title]". [title] being optional.
+
+
 The Bot will create a message telling everyone you are looking for partners. Now users wishing to join the comp have to click the 🆗 reaction to join. Clicking the 🆗 reaction again will remove a user from the comp.
 
 ## Custom Messages
