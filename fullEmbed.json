@@ -9,7 +9,7 @@
 			"author":{
 				"name": "%s's Comp Is Ready!"
 			},
-			"title": "The Comp Is Ready!",
+			"title": "%s's Comp Is Ready!",
 			"description":"5/5 Are ready!\n%s"
 		}
 	]
